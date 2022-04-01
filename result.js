@@ -1,3 +1,7 @@
+/**
+ * Show result
+ */
+
 function showResultFromDataTransfer(aTextNode, aAction, aDataTransfer) {
   aTextNode.appendData(`action:\n  ${aAction}\n\n`);
   aTextNode.appendData(`type:\n  DataTransfer\n\n`);
@@ -17,6 +21,77 @@ function showResultFromDataTransfer(aTextNode, aAction, aDataTransfer) {
     aTextNode.appendData(`  [${i}] ${items[i].kind} - ${items[i].type}\n`);
   }
 }
+
+function showResultFromClipboardItems(aContainer, aAction, aClipboardItems) {
+  let prefix = document.createTextNode(`action:\n  ${aAction}\n\n`);
+  prefix.appendData(`type:\n  ClipboardItems\n\n`);
+  prefix.appendData(`items:\n  length = ${aClipboardItems.length}\n`);
+  aContainer.appendChild(prefix);
+
+  for (let i = 0; i < aClipboardItems.length; i++) {
+    let item = aClipboardItems[i];
+    let itemContainer = document.createElement("pre");
+    let text = document.createTextNode(`item ${i}:\n`);
+    text.appendData(`  ${item.presentationStyle}\n`);
+    itemContainer.appendChild(text);
+
+    let types = item.types;
+    for (let j = 0; j < types.length; j++) {
+      let typeContainer = document.createElement("div");
+      typeContainer.innerHTML = `  [${j}] ${types[j]} `;
+      itemContainer.appendChild(typeContainer);
+    }
+
+    if (types.length > 0) {
+      let preBtn = document.createTextNode("  ");
+      itemContainer.appendChild(preBtn);
+
+      let btn = document.createElement("button");
+      btn.innerText = `get data`;
+      btn.addEventListener('click', evt => {
+        loadDataFromClipboardItem(aClipboardItems, i);
+      });
+      itemContainer.appendChild(btn);
+    }
+
+    aContainer.appendChild(itemContainer);
+  }
+}
+
+function showResult(aAction, aData) {
+  let resultArea = document.getElementById("result");
+  let resultPreviousArea = document.getElementById("resultPrevious");
+
+  resultPreviousArea.firstChild.remove();
+  resultPreviousArea.appendChild(resultArea.firstChild);
+
+  let result;
+  if (aData instanceof DataTransfer) {
+    result = document.createTextNode("");
+    showResultFromDataTransfer(result, aAction, aData);
+  } else if (Array.isArray(aData)) {
+    result = document.createElement("pre");
+    showResultFromClipboardItems(result, aAction, aData);
+  } else {
+    result = document.createTextNode("Unknow format");
+  }
+
+  resultArea.appendChild(result);
+}
+
+function showException(aException) {
+  let resultArea = document.getElementById("result");
+  let resultPreviousArea = document.getElementById("resultPrevious");
+
+  resultPreviousArea.firstChild.remove();
+  resultPreviousArea.appendChild(resultArea.firstChild);
+
+  resultArea.appendChild(document.createTextNode(aException));
+}
+
+/**
+ * Load data
+ */
 
 function loadDataFromDataTransfer(aContainer, aDataTransfer) {
   let items = aDataTransfer.items;
@@ -45,9 +120,34 @@ function loadDataFromDataTransfer(aContainer, aDataTransfer) {
   }
 }
 
+function loadDataFromClipboardItem(aClipboardItems, aIndex) {
+  let container = document.getElementById("data");
+  container.innerHTML = `<pre>item ${aIndex}</pre>`;
+
+  let item = aClipboardItems[aIndex];
+  let types = item.types;
+  for (let i = 0; i < types.length; i++) {
+    let type = types[i];
+    let data = document.createElement("li");
+    data.innerHTML = `${type}:<br>`;
+
+    let pre = document.createElement("pre");
+    pre.classList.add('data');
+    data.appendChild(pre);
+
+    let object = document.createElement("object");
+    item.getType(type).then(blob => {
+      object.data = URL.createObjectURL(blob);
+    });
+    pre.appendChild(object);
+
+    container.appendChild(data);
+  }
+}
+
 function loadData(aData) {
   let container = document.getElementById("data");
-  data.innerHTML = "";
+  container.innerHTML = "";
 
   if (aData instanceof DataTransfer) {
     loadDataFromDataTransfer(container, aData);
@@ -57,20 +157,7 @@ function loadData(aData) {
   }
 }
 
-function showResult(aAction, aData) {
-  let resultArea = document.getElementById("result");
-  let resultPreviousArea = document.getElementById("resultPrevious");
-
-  resultPreviousArea.firstChild.remove();
-  resultPreviousArea.appendChild(resultArea.firstChild);
-
-  let result;
-  if (aData instanceof DataTransfer) {
-    result = document.createTextNode("");
-    showResultFromDataTransfer(result, aAction, aData);
-  } else {
-    result = document.createTextNode("Unknow format");
-  }
-
-  resultArea.appendChild(result);
+function clearData() {
+  let container = document.getElementById("data");
+  container.innerHTML = "No Data";
 }

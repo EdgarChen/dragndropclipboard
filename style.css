@@ -19,4 +19,5 @@ pre.data {
 object {
   max-height: 300px;
   max-width: 300px;
+  border: 1px solid #000;
 }
