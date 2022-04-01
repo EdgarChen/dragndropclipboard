@@ -23,7 +23,7 @@ droparea.addEventListener('drop', evt => {
 
 // Get DataTransfer from paste event.
 document.addEventListener('paste', evt => {
-  showResult("drag and drop", evt.clipboardData);
+  showResult("past", evt.clipboardData);
   loadData(evt.clipboardData);
   evt.preventDefault();
 });
