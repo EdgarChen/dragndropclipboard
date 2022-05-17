@@ -111,6 +111,10 @@ function loadDataFromDataTransfer(aContainer, aDataTransfer) {
         });
         break;
       case "file":
+        let div = document.createElement("div");
+        div.innerHTML = `size: ${item.getAsFile().size}<br><br>`;
+        pre.appendChild(div);
+
         let object = document.createElement("object");
         object.data = URL.createObjectURL(item.getAsFile());
         pre.appendChild(object);
@@ -135,11 +139,27 @@ function loadDataFromClipboardItem(aClipboardItems, aIndex) {
     pre.classList.add('data');
     data.appendChild(pre);
 
-    let object = document.createElement("object");
     item.getType(type).then(blob => {
-      object.data = URL.createObjectURL(blob);
+      div = document.createElement("div");
+      div.innerHTML = `size: ${blob.size}<br><br>`;
+      pre.appendChild(div);
+
+      if (type == 'text/html' || type == 'text/plain') {
+        blob.text().then((text) => {
+          div = document.createElement("div");
+          div.innerText = `${text}`;
+          pre.appendChild(div);
+        });
+      } else {
+        let object = document.createElement("object");
+        object.data = URL.createObjectURL(blob);
+        pre.appendChild(object);
+      }
+    }, e => {
+      let div = document.createElement("div");
+      div.innerHTML = `promise rejected: ${e}`;
+      pre.appendChild(div);
     });
-    pre.appendChild(object);
 
     container.appendChild(data);
   }
