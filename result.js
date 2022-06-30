@@ -111,9 +111,19 @@ function loadDataFromDataTransfer(aContainer, aDataTransfer) {
         });
         break;
       case "file":
+        let file = item.getAsFile();
         let div = document.createElement("div");
-        div.innerHTML = `size: ${item.getAsFile().size}<br><br>`;
+
+        div.innerHTML += `type: ${file.type}<br>`
+        div.innerHTML += `size: ${file.size}<br><br>`;
         pre.appendChild(div);
+
+        if (file.type == "image/svg+xml") {
+          file.text().then((text) => {
+            pre.appendChild(document.createTextNode(text));
+          });
+          break;
+        }
 
         let object = document.createElement("object");
         object.data = URL.createObjectURL(item.getAsFile());
