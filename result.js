@@ -144,7 +144,7 @@ function loadDataFromClipboardItem(aClipboardItems, aIndex) {
       div.innerHTML = `size: ${blob.size}<br><br>`;
       pre.appendChild(div);
 
-      if (type == 'text/html' || type == 'text/plain') {
+      if (type == 'text/html' || type == 'text/plain' || type == "image/svg+xml") {
         blob.text().then((text) => {
           div = document.createElement("div");
           div.innerText = `${text}`;
