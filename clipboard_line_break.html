@@ -14,7 +14,7 @@
     .row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
     label { font-size:14px; color:var(--muted); }
     select, input[type="text"], textarea, button { color:var(--text); background:#0f1726; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 12px; font-size:14px; }
-    textarea { width:100%; min-height:120px; resize:vertical; }
+    textarea { width:95%; min-height:120px; resize:vertical; }
     button { cursor:pointer; transition: transform .04s ease; }
     button:hover { transform: translateY(-1px); }
     button.primary { background: linear-gradient(180deg, #1774d3, #0f63ba); border:none; }
@@ -63,11 +63,6 @@
       <!-- Read Panel -->
       <div class="card span-6">
         <h2 style="margin-top:0">📥 Paste from Clipboard</h2>
-        <div class="row" style="margin:8px 0 12px;">
-          <label>Method</label>
-          <label><input type="radio" name="readMode" value="paste-event" checked> paste event</label>
-          <label><input type="radio" name="readMode" value="async"> async clipboard API</label>
-        </div>
         <div id="pasteZoneWrap" class="row" style="margin-bottom:10px;">
           <div>
             <div class="muted" style="margin-bottom:6px;">Paste test（paste event）</div>
@@ -76,36 +71,36 @@
           </div>
         </div>
         <div class="row">
-          <button id="btnRead" class="primary">Paste from Clipboard（async）</button>
+          <button id="btnRead" class="primary">Paste from Async Clipboard API</button>
           <span id="readStatus" class="status muted"></span>
         </div>
       </div>
 
       <!-- Output Panel -->
       <div class="card span-12">
-        <h2 style="margin-top:0">📊 Result</h2>
+        <h2 style="margin-top:0">📊 Paste Result</h2>
         <div class="row" style="gap:8px; margin-bottom:10px;">
-          <span class="tag" id="detectedTag">偵測：—</span>
-          <span class="tag" id="lenTag">長度：0</span>
-          <span class="tag" id="linesTag">行數：0</span>
+          <span class="tag" id="detectedTag">Line break: —</span>
+          <span class="tag" id="lenTag">Length: 0</span>
+          <span class="tag" id="linesTag">Number of lines: 0</span>
           <span class="tag" id="uaTag" title="User-Agent">UA</span>
         </div>
         <div class="row" style="gap:8px; margin:4px 0 14px;">
-          <button id="btnExportTxt" class="ghost">下載 raw.txt</button>
-          <button id="btnExportEscaped" class="ghost">下載 escaped.txt</button>
-          <button id="btnExportJson" class="ghost">下載 report.json</button>
+          <button id="btnExportTxt" class="ghost">Download raw.txt</button>
+          <button id="btnExportEscaped" class="ghost">Download escaped.txt</button>
+          <button id="btnExportJson" class="ghost">Download report.json</button>
         </div>
         <div class="grid">
           <div class="span-4">
-            <div class="muted" style="margin-bottom:6px;">原始文字（可見換行）</div>
+            <div class="muted" style="margin-bottom:6px;">Original text</div>
             <pre id="outRaw" class="pre mono"></pre>
           </div>
           <div class="span-4">
-            <div class="muted" style="margin-bottom:6px;">跳脫後（\\r、\\n 顯示）</div>
+            <div class="muted" style="margin-bottom:6px;">Escaped \\r \\n</div>
             <pre id="outEscaped" class="pre mono"></pre>
           </div>
           <div class="span-4">
-            <div class="muted" style="margin-bottom:6px;">Code Points（前 200 個）</div>
+            <div class="muted" style="margin-bottom:6px;">Code Points（first 200 char）</div>
             <pre id="outCodes" class="pre mono"></pre>
           </div>
         </div>
@@ -137,7 +132,7 @@
   const linesTag = $('#linesTag');
   const uaTag = $('#uaTag');
 
-  // 匯出資料暫存
+  // Exported data
   let lastOutput = {
     text: '',
     escaped: '',
@@ -152,7 +147,7 @@
   uaTag.textContent = navigator.userAgent;
 
   $('#btnSample').addEventListener('click', () => {
-    writeInput.value = 'Line1\nLine2\nLine3 (末尾有空白) ';
+    writeInput.value = 'Line1\nLine2\nLine3 (there is space at the end) ';
   });
 
   function normalizeNewlines(text, mode){
@@ -168,9 +163,9 @@
   async function writeViaAsyncClipboard(text){
     try{
       await navigator.clipboard.writeText(text);
-      setStatus(writeStatus, '已使用 Async Clipboard API 寫入。', 'ok');
+      setStatus(writeStatus, 'Copied via Async Clipboard API.', 'ok');
     }catch(err){
-      setStatus(writeStatus, 'Async 寫入失敗：' + err, 'err');
+      setStatus(writeStatus, 'Copy failed:' + err, 'err');
     }
   }
 
@@ -179,9 +174,9 @@
       try {
         e.clipboardData.setData('text/plain', text);
         e.preventDefault();
-        setStatus(writeStatus, '已透過 copy event 寫入。', 'ok');
+        setStatus(writeStatus, 'Copied via copy event.', 'ok');
       } catch(err){
-        setStatus(writeStatus, 'copy event 失敗：' + err, 'err');
+        setStatus(writeStatus, 'Copy failed:' + err, 'err');
       }
     };
     document.addEventListener('copy', onCopy, { once: true });
@@ -191,7 +186,7 @@
     hidden.select();
     const ok = document.execCommand('copy');
     if(!ok){
-      setStatus(writeStatus, 'execCommand(copy) 可能失敗，請嘗試手動 Ctrl/Cmd+C。', 'warn');
+      setStatus(writeStatus, 'execCommand(copy) might not work，please try press Ctrl/Cmd+C manually.', 'warn');
     }
   }
 
@@ -212,32 +207,27 @@
     }
   });
 
-  // paste event 讀取
+  // paste event
   pasteZone.addEventListener('paste', (e) => {
-    if(($('input[name="readMode"]:checked')||{}).value !== 'paste-event') return;
     e.preventDefault();
     const text = e.clipboardData.getData('text/plain');
-    setStatus(readStatus, '已攔截 paste event。', 'ok');
+    setStatus(readStatus, 'Handled paste event.', 'ok');
     renderOutput(text);
   });
 
-  // async 讀取
+  // async clipboard
   $('#btnRead').addEventListener('click', async () => {
-    if(($('input[name="readMode"]:checked')||{}).value !== 'async'){
-      setStatus(readStatus, '請先選擇「async clipboard API」。', 'warn');
-      return;
-    }
-    try{
+    try {
       const text = await navigator.clipboard.readText();
-      setStatus(readStatus, '已使用 Async Clipboard API 讀取。', 'ok');
+      setStatus(readStatus, 'Pasted from Async Clipboard API.', 'ok');
       renderOutput(text);
-    }catch(err){
-      setStatus(readStatus, '讀取失敗：' + err, 'err');
+    } catch(err) {
+      setStatus(readStatus, 'Paste failed:' + err, 'err');
     }
   });
 
   function renderOutput(text){
-    outRaw.textContent = text; // 原樣顯示（pre-wrap）
+    outRaw.textContent = text;
     const escaped = escapeVisible(text);
     const codes = codePoints(text).slice(0,200);
     outEscaped.textContent = escaped;
@@ -247,9 +237,9 @@
     const lines = (text.length ? text.split(/\\r\\n|\\r|\\n/).length : 0);
     const detected = detectNewlines(text);
 
-    lenTag.textContent = '長度：' + len;
-    linesTag.textContent = '行數：' + lines;
-    detectedTag.textContent = '偵測：' + detected;
+    lenTag.textContent = 'Length: ' + len;
+    linesTag.textContent = 'Number of lines: ' + lines;
+    detectedTag.textContent = 'Line break: ' + detected;
 
     lastOutput = {
       text,
@@ -285,7 +275,7 @@
     return [...kinds].join('、') || '—';
   }
 
-  // 匯出工具
+  // Export files
   function download(filename, content, mime){
     const blob = new Blob([content], {type: mime});
     const a = document.createElement('a');
@@ -319,7 +309,7 @@
     download(`clipboard-report-${ts}.json`, JSON.stringify(report, null, 2), 'application/json;charset=utf-8');
   });
 
-  // 初始輸出為空
+  // Initial output is empty.
   renderOutput('');
 })();
 </script>
