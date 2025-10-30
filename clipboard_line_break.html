@@ -32,7 +32,7 @@
 <body>
   <div class="wrap">
     <h1 style="font-size:28px; margin:0 0 6px 0;">Clipboard Line Break Test</h1>
-    <div class="muted" style="margin-bottom:18px;">This is used to test <code class="mono">\r</code>、<code class="mono">\n</code>、<code class="mono">\r\n</code> in <em> Clipboard API</em></div>
+    <div class="muted" style="margin-bottom:18px;">This is used to test <code class="mono">\r</code>, <code class="mono">\n</code> and <code class="mono">\r\n</code> in <em> Clipboard API</em></div>
 
     <div class="grid">
       <!-- Write Panel -->
@@ -46,9 +46,9 @@
         <div class="row" style="margin:0 0 12px;">
           <label>Line break：</label>
           <select id="newlineSelect">
-            <option value="CR">\\r (CR)</option>
-            <option value="LF">\\n (LF)</option>
-            <option value="CRLF" selected>\\r\\n (CRLF)</option>
+            <option value="CR">\r (CR)</option>
+            <option value="LF">\n (LF)</option>
+            <option value="CRLF" selected>\r\n (CRLF)</option>
           </select>
           <span class="muted">The below text will be convert to use the selected line break</span>
         </div>
@@ -96,7 +96,7 @@
             <pre id="outRaw" class="pre mono"></pre>
           </div>
           <div class="span-4">
-            <div class="muted" style="margin-bottom:6px;">Escaped \\r \\n</div>
+            <div class="muted" style="margin-bottom:6px;">Escape \r and \n</div>
             <pre id="outEscaped" class="pre mono"></pre>
           </div>
           <div class="span-4">
